@@ -132,7 +132,7 @@ flowchart TD
     NORM --> EDA2["eda_normalizado.ipynb"]:::nb
     NORM -.->|"_revisar_llm / _vocab_nuevo (validación)"| CURA{{"¿Ampliar diccionario?"}}:::decision
     CURA -.->|editar| VX
-    CURA -.->|re-normalizar gratis (cache)| ORq
+    CURA -.->|re-normalizar gratis desde cache| ORq
 
     classDef input fill:#FFF3CD,stroke:#B8860B,color:#000
     classDef output fill:#D1E7DD,stroke:#0F5132,color:#000
