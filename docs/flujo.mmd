@@ -1,0 +1,61 @@
+%% Flujo de extracción estructurada — Veritrade camiones (partida 8704229000)
+%% Render: https://mermaid.live  o  mmdc -i docs/flujo.mmd -o docs/flujo.svg
+flowchart TD
+    RAW[("Veritrade_...xlsx<br/>(crudo, inmutable)<br/>12.417 filas")]:::input
+
+    %% ---------- Fase 1: parser determinístico ----------
+    subgraph V1["Fase 1 — Parser determinístico (gratis)"]
+        EXTRACT["scripts/extract_descripcion.py<br/>tokeniza CÓDIGO:valor"]:::script
+        ESTR[("camiones_..._estructurado.xlsx<br/>~28 campos crudos")]:::output
+        EXTRACT --> ESTR
+    end
+    RAW --> EXTRACT
+
+    EDA1["notebooks/eda_camiones.ipynb<br/>EDA determinístico"]:::nb
+    ESTR --> EDA1
+
+    %% ---------- Vocabulario ----------
+    EJ[("ejemplo.xlsx<br/>vocab semilla:<br/>188 marcas + enums")]:::input
+    VX[("data/vocab_extra.json<br/>marcas nuevas / alias /<br/>alias de modelo")]:::input
+    VOCAB["scripts/llm/vocab.py<br/>fusiona semilla + extra<br/>(190 marcas)"]:::script
+    EJ --> VOCAB
+    VX --> VOCAB
+
+    %% ---------- Fase B: LLM ----------
+    subgraph FB["Fase B — Normalización con LLM (DeepSeek)"]
+        ORq["scripts/extract_llm.py<br/>orquestador (--sample / --all)"]:::script
+        SAMP["sampler.py<br/>muestreo estratificado"]:::script
+        CACHE[("cache.py<br/>.cache/llm/results.jsonl<br/>dedup + reanudable")]:::cache
+        CLIENT["client.py → api.deepseek.com<br/>batching · retry · prompt-cache"]:::ext
+        VAL["validate.py<br/>JSON robusto + enums(sinónimos)<br/>+ fuzzy modelo + model_aliases<br/>→ flag: ok / alias / low / nomatch"]:::script
+        REP["report.py<br/>cobertura · costo · lift"]:::script
+
+        ORq --> SAMP --> ORq
+        ORq -->|texto único no cacheado| CLIENT
+        CLIENT --> CACHE
+        CACHE -->|raw LLM| VAL
+        VAL --> REP
+    end
+    ESTR -->|+ texto crudo desc| ORq
+    VOCAB --> ORq
+    VOCAB --> VAL
+
+    NORM[("camiones_..._normalizado.xlsx<br/>normalizado_llm · _revisar_llm<br/>_vocab_nuevo · _reporte<br/>modelo fill 99.7%")]:::output
+    VAL --> NORM
+    REP --> NORM
+
+    EDA2["notebooks/eda_normalizado.ipynb<br/>EDA normalizado"]:::nb
+    NORM --> EDA2
+
+    %% ---------- Loop de curación ----------
+    NORM -.->|"_revisar_llm / _vocab_nuevo — validación SME"| CURA{{"¿Ampliar diccionario?"}}:::decision
+    CURA -.->|editar| VX
+    CURA -.->|re-normalizar GRATIS<br/>desde cache| ORq
+
+    classDef input fill:#FFF3CD,stroke:#B8860B,color:#000
+    classDef output fill:#D1E7DD,stroke:#0F5132,color:#000
+    classDef script fill:#CFE2FF,stroke:#084298,color:#000
+    classDef nb fill:#E2D9F3,stroke:#59359A,color:#000
+    classDef cache fill:#E2E3E5,stroke:#41464B,color:#000
+    classDef ext fill:#F8D7DA,stroke:#842029,color:#000
+    classDef decision fill:#FFE5B4,stroke:#B8860B,color:#000
