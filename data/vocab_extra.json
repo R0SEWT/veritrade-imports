@@ -78,6 +78,18 @@
       "1217 CHC": "1217",
       "1217 CHC LONG": "1217",
       "1217 CHC LONG - EURO 5": "1217"
+    },
+    "VOLKSWAGEN": {
+      "11.180 CUM E5": "DELIVERY 11.180",
+      "11.180 CUM E5 4X4": "DELIVERY 11.180",
+      "11.180 CUM E5 DWG": "DELIVERY 11.180",
+      "11.180 CUM E5 NG": "DELIVERY 11.180",
+      "13.190 LR MAN E5": "ROBUST 13.190",
+      "15.190 CRM": "ROBUST 15.190",
+      "17.190 LR MAN E5": "ROBUST 17.190",
+      "17.230 DC MAN E5": "ROBUST 17.230",
+      "17.280 DC MAN E5": "ROBUST 17.280",
+      "17.280 LR MAN E5": "ROBUST 17.280"
     }
   }
 }

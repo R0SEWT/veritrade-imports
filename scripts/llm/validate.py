@@ -108,7 +108,7 @@ def normalize_record(item: dict, v: Vocab) -> dict:
     if alias_modelo:
         rec["modelo_match"] = alias_modelo
         rec["modelo_score"] = 100.0
-        rec["modelo_flag"] = "ok"
+        rec["modelo_flag"] = "alias"  # mapeo curado (inferido) -> queda para validación SME
     elif modelo_raw and choices:
         match, score = _best(modelo_raw, choices)
         rec["modelo_match"] = match

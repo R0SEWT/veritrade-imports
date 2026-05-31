@@ -20,17 +20,17 @@ def build(df: pd.DataFrame, stats: Stats) -> pd.DataFrame:
 
     filas.append(("filas_muestra", len(df)))
 
-    # Fill-rate de modelo: v1 vs LLM
+    # Fill-rate de modelo: v1 vs LLM (ok exacto + alias curado + low)
+    resueltos = ["ok", "alias", "low"]
     filas.append(("modelo_fill_v1_%", pct(df["modelo"].notna())))
-    llm_modelo_ok = df["modelo_flag"].isin(["ok", "low"])
-    filas.append(("modelo_fill_llm_ok+low_%", pct(llm_modelo_ok)))
+    filas.append(("modelo_fill_llm_%", pct(df["modelo_flag"].isin(resueltos))))
 
     # Lift en el estrato sin_modelo
     if "estrato" in df:
         sm = df[df["estrato"] == "sin_modelo"]
         if len(sm):
             filas.append(("lift_modelo_en_sin_modelo_%",
-                          round(100 * sm["modelo_flag"].isin(["ok", "low"]).mean(), 1)))
+                          round(100 * sm["modelo_flag"].isin(resueltos).mean(), 1)))
 
     # Acuerdo de marca (donde v1 tiene marca y LLM la dejó in_vocab)
     comp = df[df["marca"].notna() & df["marca_norm"].notna()]

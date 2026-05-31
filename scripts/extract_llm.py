@@ -161,7 +161,7 @@ def main() -> int:
 
     # Escribir xlsx
     revisar = out[
-        out["modelo_flag"].isin(["low", "nomatch"]) |
+        out["modelo_flag"].isin(["low", "nomatch", "alias"]) |
         (~out["marca_in_vocab"]) |
         (~out["traccion_valido"]) | (~out["combustible_valido"]) |
         (~out["clasificacion_valido"]) | (~out["caja_valido"])
