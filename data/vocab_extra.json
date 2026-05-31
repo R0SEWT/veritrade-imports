@@ -9,7 +9,60 @@
     "SINOTRUCK": "SINOTRUK"
   },
   "marcas": {
-    "FORLAND": ["F700 VIP CH", "FD400", "FD400N", "FD600", "FD600N", "FD800", "FD800N"],
-    "HOWO": ["ZZ1168F4715E1", "ZZ1087G381CE183"]
+    "FORLAND": [
+      "F1100 CH",
+      "F1100N",
+      "F1100N CH",
+      "F700 VIP CH",
+      "FD400",
+      "FD400N",
+      "FD600",
+      "FD600N",
+      "FD800",
+      "FD800N"
+    ],
+    "HOWO": [
+      "ZZ1168F4715E1",
+      "ZZ1087G381CE183"
+    ],
+    "SINOTRUK": [
+      "SZD5258ZXXZZ6",
+      "ZZ1048D3314E145",
+      "ZZ1147G471DE1",
+      "ZZ1147G5215D1",
+      "ZZ1167K501GE1",
+      "ZZ1167M491GE1",
+      "ZZ1167M561GE1",
+      "ZZ1167M581GE1",
+      "ZZ1168F4515E1C",
+      "ZZ1168G4515E1",
+      "ZZ1168G5215D1",
+      "ZZ1168H421NE1",
+      "ZZ1168H5215E1",
+      "ZZ1168K4715C1",
+      "ZZ1187N581GC1",
+      "ZZ1257V384JE1R",
+      "ZZ3048C2813D145",
+      "ZZ3048D3214D143",
+      "ZZ3168F3415E1",
+      "ZZ3168F3415F1",
+      "ZZ3168G3415E1",
+      "ZZ3168G3415E1R",
+      "ZZ3257V384JB1",
+      "ZZ3257V434GF1",
+      "ZZ3317V286GC1",
+      "ZZ3317V326GF1",
+      "ZZ3317V326JE1",
+      "ZZ3317V3867E1",
+      "ZZ3317V386GF1",
+      "ZZ5257GJBV404GE1"
+    ],
+    "THWAITES": [
+      "6000",
+      "7000",
+      "9000",
+      "MACH 590",
+      "MACH 591"
+    ]
   }
 }
