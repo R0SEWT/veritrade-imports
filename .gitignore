@@ -3,3 +3,5 @@ camiones_8704229000_estructurado.xlsx
 __pycache__/
 .cache/
 .env
+CLAUDE.md
+.claude/
