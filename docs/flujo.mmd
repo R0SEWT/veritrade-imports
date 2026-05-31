@@ -1,12 +1,12 @@
 %% Flujo de extracción estructurada — Veritrade camiones (partida 8704229000)
 %% Render: https://mermaid.live  o  mmdc -i docs/flujo.mmd -o docs/flujo.svg
 flowchart TD
-    RAW[("Veritrade_...xlsx<br/>(crudo, inmutable)<br/>12.417 filas")]:::input
+    RAW[("inputs/*.xlsx<br/>exports Veritrade (vehículos)<br/>batch")]:::input
 
     %% ---------- Fase 1: parser determinístico ----------
     subgraph V1["Fase 1 — Parser determinístico (gratis)"]
         EXTRACT["scripts/extract_descripcion.py<br/>tokeniza CÓDIGO:valor"]:::script
-        ESTR[("camiones_..._estructurado.xlsx<br/>~28 campos crudos")]:::output
+        ESTR[("outputs/&lt;stem&gt;_estructurado.xlsx<br/>~28 campos crudos")]:::output
         EXTRACT --> ESTR
     end
     RAW --> EXTRACT
@@ -15,7 +15,7 @@ flowchart TD
     ESTR --> EDA1
 
     %% ---------- Vocabulario ----------
-    EJ[("ejemplo.xlsx<br/>vocab semilla:<br/>188 marcas + enums")]:::input
+    EJ[("data/ejemplo.xlsx<br/>vocab semilla:<br/>188 marcas + enums")]:::input
     VX[("data/vocab_extra.json<br/>marcas nuevas / alias /<br/>alias de modelo")]:::input
     VOCAB["scripts/llm/vocab.py<br/>fusiona semilla + extra<br/>(190 marcas)"]:::script
     EJ --> VOCAB
@@ -23,7 +23,7 @@ flowchart TD
 
     %% ---------- Fase B: LLM ----------
     subgraph FB["Fase B — Normalización con LLM (DeepSeek)"]
-        ORq["scripts/extract_llm.py<br/>orquestador (--sample / --all)"]:::script
+        ORq["scripts/extract_llm.py<br/>orquestador (batch sobre inputs/)"]:::script
         SAMP["sampler.py<br/>muestreo estratificado"]:::script
         CACHE[("cache.py<br/>.cache/llm/results.jsonl<br/>dedup + reanudable")]:::cache
         CLIENT["client.py → api.deepseek.com<br/>batching · retry · prompt-cache"]:::ext
@@ -40,7 +40,7 @@ flowchart TD
     VOCAB --> ORq
     VOCAB --> VAL
 
-    NORM[("camiones_..._normalizado.xlsx<br/>normalizado_llm · _revisar_llm<br/>_vocab_nuevo · _reporte<br/>modelo fill 99.7%")]:::output
+    NORM[("outputs/&lt;stem&gt;_normalizado.xlsx<br/>normalizado_llm · _revisar_llm<br/>_vocab_nuevo · _reporte<br/>modelo fill 99.7%")]:::output
     VAL --> NORM
     REP --> NORM
 

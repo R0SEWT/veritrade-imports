@@ -11,13 +11,14 @@ Spec: docs/superpowers/specs/2026-05-30-extraccion-descripcion-comercial-design.
 from __future__ import annotations
 
 import re
+import argparse
 import sys
 from pathlib import Path
 
 import openpyxl
 
-SRC = "Veritrade_JOSE.GOMEZ@DWMOTORS.PE_PE_I_20260430094944.xlsx"
-OUT = "camiones_8704229000_estructurado.xlsx"
+INPUTS_DIR = "inputs"    # carpeta con exports crudos de Veritrade (vehículos)
+OUTPUTS_DIR = "outputs"  # carpeta de salida: <stem>_estructurado.xlsx
 HEADER_ROW = 6  # banner en filas 1-5, cabecera en la 6, datos desde la 7
 
 # --- Columnas "duras" del export: cabecera original -> nombre de salida ---
@@ -210,12 +211,9 @@ def _assign(out: dict, code: str, raw: str) -> None:
         out[col] = raw
 
 
-def main() -> int:
-    src = Path(SRC)
-    if not src.exists():
-        print(f"No se encontró {SRC}", file=sys.stderr)
-        return 1
-
+def process_file(src: Path, out: Path) -> bool:
+    """Parsea un export y escribe out/<...>_estructurado.xlsx. Devuelve True si ok."""
+    print(f"\n=== {src.name} ===")
     wb = openpyxl.load_workbook(src, read_only=True)
     ws = wb.active
 
@@ -239,8 +237,8 @@ def main() -> int:
         rows.append(rec)
 
     if not rows:
-        print("Sin filas de datos.", file=sys.stderr)
-        return 1
+        print(f"  Sin filas de datos en {src.name}.", file=sys.stderr)
+        return False
 
     total = len(rows)
     hard_out = [v for k, v in HARD_COLS.items() if v != "_descripcion"]
@@ -276,9 +274,38 @@ def main() -> int:
         for r in revisar:
             ws_rev.append([r.get(c) for c in rev_cols])
 
-    out_wb.save(OUT)
-    print(f"\nEscrito: {OUT}  ({total} filas, {len(columns)} columnas)")
-    return 0
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out_wb.save(out)
+    print(f"  Escrito: {out}  ({total} filas, {len(columns)} columnas)")
+    return True
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Parser determinístico de la Descripción Comercial (batch).")
+    ap.add_argument("--inputs-dir", default=INPUTS_DIR, help="carpeta con exports crudos (default: inputs/)")
+    ap.add_argument("--outputs-dir", default=OUTPUTS_DIR, help="carpeta de salida (default: outputs/)")
+    ap.add_argument("--input", help="procesar un solo archivo (override de --inputs-dir)")
+    args = ap.parse_args()
+
+    if args.input:
+        srcs = [Path(args.input)]
+    else:
+        srcs = sorted(Path(args.inputs_dir).glob("*.xlsx"))
+    if not srcs:
+        print(f"No se encontraron .xlsx en {args.inputs_dir}/", file=sys.stderr)
+        return 1
+
+    out_dir = Path(args.outputs_dir)
+    ok = 0
+    for src in srcs:
+        if not src.exists():
+            print(f"No existe: {src}", file=sys.stderr)
+            continue
+        out = out_dir / f"{src.stem}_estructurado.xlsx"
+        if process_file(src, out):
+            ok += 1
+    print(f"\nListo: {ok}/{len(srcs)} archivos procesados.")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

@@ -1,5 +1,11 @@
-camiones_8704229000_estructurado.xlsx
+# Datos de trabajo (xlsx) — ignorados por defecto para no publicar data privada.
 *.xlsx
+# ...salvo los archivos de ejemplo nombrados explícitamente:
+!inputs/veritrade_PE_I_8704229000.xlsx
+!outputs/veritrade_PE_I_8704229000_estructurado.xlsx
+!outputs/veritrade_PE_I_8704229000_normalizado.xlsx
+!data/ejemplo.xlsx
+
 __pycache__/
 .cache/
 .env

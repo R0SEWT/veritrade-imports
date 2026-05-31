@@ -40,9 +40,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from scripts.llm import report, sampler, validate, vocab as vocab_mod  # noqa: E402
 from scripts.llm.cache import Cache, text_key  # noqa: E402
 
-V1_XLSX = "camiones_8704229000_estructurado.xlsx"
-RAW_XLSX = "Veritrade_JOSE.GOMEZ@DWMOTORS.PE_PE_I_20260430094944.xlsx"
-OUT_XLSX = "camiones_8704229000_normalizado.xlsx"
+INPUTS_DIR = "inputs"    # exports crudos de Veritrade (vehículos)
+OUTPUTS_DIR = "outputs"  # <stem>_estructurado.xlsx (entrada v1) y <stem>_normalizado.xlsx (salida)
 HEADER_ROW = 6
 
 NORM_COLS = [
@@ -53,11 +52,11 @@ NORM_COLS = [
 ]
 
 
-def load_v1_with_desc() -> pd.DataFrame:
+def load_v1_with_desc(raw_path: Path, v1_path: Path) -> pd.DataFrame:
     """Tabla v1 + texto crudo de la descripción (alineado por orden de fila)."""
-    df = pd.read_excel(V1_XLSX, sheet_name="estructurado")
+    df = pd.read_excel(v1_path, sheet_name="estructurado")
 
-    wb = openpyxl.load_workbook(RAW_XLSX, read_only=True)
+    wb = openpyxl.load_workbook(raw_path, read_only=True)
     ws = wb.active
     header = next(ws.iter_rows(min_row=HEADER_ROW, max_row=HEADER_ROW, values_only=True))
     j_dua = header.index("DUA / DAM")
@@ -92,25 +91,15 @@ def make_on_batch():
     return on_batch
 
 
-def main() -> int:
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--sample", type=int, default=300)
-    ap.add_argument("--all", action="store_true", help="procesar todas las filas (escalado)")
-    ap.add_argument("--batch-size", type=int, default=10)
-    ap.add_argument("--workers", type=int, default=4)
-    ap.add_argument("--model", default=None)
-    ap.add_argument("--dry-run", action="store_true", help="muestrea y reporta sin llamar a la API")
-    args = ap.parse_args()
-
-    load_dotenv()
-    v = vocab_mod.load()
-    df = load_v1_with_desc()
-    sub = df if args.all else sampler.sample(df, v, n=args.sample)
+def process_file(raw_path: Path, v1_path: Path, out_path: Path, v, cache: Cache, args) -> bool:
+    print(f"\n=== {raw_path.name} ===")
+    df = load_v1_with_desc(raw_path, v1_path)
+    # En batch (varios archivos) se procesa completo; --sample solo aplica con un único --input.
+    use_sample = bool(args.sample) and not args.all and args.input
+    sub = sampler.sample(df, v, n=args.sample) if use_sample else df
     print(f"Filas a procesar: {len(sub)}  (de {len(df)})")
     if "estrato" in sub:
         print("Estratos:", sub["estrato"].value_counts().to_dict())
-
-    cache = Cache()
     # textos únicos no cacheados
     sub = sub.copy()
     sub["_tkey"] = sub["_desc"].map(text_key)
@@ -175,14 +164,56 @@ def main() -> int:
                             sorted({str(x) for x in s if pd.notna(x)})[:10])))
                    .sort_values("unidades", ascending=False).reset_index())
 
-    with pd.ExcelWriter(OUT_XLSX, engine="openpyxl") as xw:
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+    with pd.ExcelWriter(out_path, engine="openpyxl") as xw:
         out.to_excel(xw, sheet_name="normalizado_llm", index=False)
         revisar.to_excel(xw, sheet_name="_revisar_llm", index=False)
         vocab_nuevo.to_excel(xw, sheet_name="_vocab_nuevo", index=False)
         rep.to_excel(xw, sheet_name="_reporte", index=False)
-    print(f"\nEscrito: {OUT_XLSX}  ({len(out)} filas, {len(revisar)} a revisar, "
+    print(f"Escrito: {out_path}  ({len(out)} filas, {len(revisar)} a revisar, "
           f"{len(vocab_nuevo)} marcas nuevas fuera del ejemplo)")
-    return 0
+    return True
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description="Normalización con LLM (DeepSeek) contra vocabulario (batch).")
+    ap.add_argument("--inputs-dir", default=INPUTS_DIR, help="carpeta con exports crudos (default: inputs/)")
+    ap.add_argument("--outputs-dir", default=OUTPUTS_DIR, help="carpeta de salida (default: outputs/)")
+    ap.add_argument("--input", help="procesar un solo crudo (override de --inputs-dir)")
+    ap.add_argument("--vocab", default=None, help="ruta del vocabulario (default: data/ejemplo.xlsx)")
+    ap.add_argument("--sample", type=int, default=0, help="muestrear N filas (solo con --input, para pruebas)")
+    ap.add_argument("--all", action="store_true", help="forzar procesar todo (default en batch)")
+    ap.add_argument("--batch-size", type=int, default=10)
+    ap.add_argument("--workers", type=int, default=4)
+    ap.add_argument("--model", default=None)
+    ap.add_argument("--dry-run", action="store_true", help="no llamar a la API (usa solo cache)")
+    args = ap.parse_args()
+
+    load_dotenv()
+    v = vocab_mod.load(args.vocab) if args.vocab else vocab_mod.load()
+
+    if args.input:
+        srcs = [Path(args.input)]
+    else:
+        srcs = sorted(Path(args.inputs_dir).glob("*.xlsx"))
+    if not srcs:
+        print(f"No se encontraron .xlsx en {args.inputs_dir}/", file=sys.stderr)
+        return 1
+
+    out_dir = Path(args.outputs_dir)
+    cache = Cache()  # compartida entre archivos (clave = texto de descripción)
+    ok = 0
+    for raw in srcs:
+        v1 = out_dir / f"{raw.stem}_estructurado.xlsx"
+        if not v1.exists():
+            print(f"Falta el estructurado de {raw.name} ({v1}); corre extract_descripcion.py primero.",
+                  file=sys.stderr)
+            continue
+        out = out_dir / f"{raw.stem}_normalizado.xlsx"
+        if process_file(raw, v1, out, v, cache, args):
+            ok += 1
+    print(f"\nListo: {ok}/{len(srcs)} archivos normalizados.")
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":

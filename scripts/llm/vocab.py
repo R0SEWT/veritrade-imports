@@ -13,7 +13,7 @@ from pathlib import Path
 
 import openpyxl
 
-DEFAULT_PATH = "ejemplo.xlsx"
+DEFAULT_PATH = "data/ejemplo.xlsx"
 EXTRA_PATH = "data/vocab_extra.json"
 
 # Sinónimos -> valor canónico (claves en MAYÚSCULAS, ya normalizadas con norm_key)
