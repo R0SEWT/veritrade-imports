@@ -102,8 +102,14 @@ def normalize_record(item: dict, v: Vocab) -> dict:
     modelo_raw = modelo_raw.strip() if isinstance(modelo_raw, str) and modelo_raw.strip() else None
     rec["modelo_raw_llm"] = modelo_raw
     marca_for_models = rec["marca_norm"] if rec["marca_in_vocab"] else None
+    # 1) alias de modelo explícito (curado por SME) tiene prioridad
+    alias_modelo = v.modelo_alias(marca_for_models, modelo_raw) if (marca_for_models and modelo_raw) else None
     choices = v.modelos_por_marca.get(marca_for_models, []) if marca_for_models else []
-    if modelo_raw and choices:
+    if alias_modelo:
+        rec["modelo_match"] = alias_modelo
+        rec["modelo_score"] = 100.0
+        rec["modelo_flag"] = "ok"
+    elif modelo_raw and choices:
         match, score = _best(modelo_raw, choices)
         rec["modelo_match"] = match
         rec["modelo_score"] = round(score, 1)

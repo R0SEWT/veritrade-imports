@@ -55,11 +55,17 @@ class Vocab:
     caja: list[str]
     _marca_idx: dict[str, str] = field(default_factory=dict)  # norm_key -> marca canónica
     _alias_idx: dict[str, str] = field(default_factory=dict)   # norm_key(alias) -> marca canónica
+    # marca canónica -> {norm_key(modelo_raw) -> modelo canónico}
+    _model_alias: dict[str, dict[str, str]] = field(default_factory=dict)
 
     def marca_canonica(self, raw: str) -> str | None:
         """Marca canónica si raw coincide (normalizado) con una marca o un alias; si no None."""
         k = norm_key(raw)
         return self._marca_idx.get(k) or self._alias_idx.get(k)
+
+    def modelo_alias(self, marca_canon: str, raw: str) -> str | None:
+        """Modelo canónico si hay alias de modelo (match normalizado exacto) para esa marca."""
+        return self._model_alias.get(marca_canon, {}).get(norm_key(raw))
 
     def enum_norm(self, campo: str, raw: str) -> str | None:
         """Normaliza un valor de enum vía sinónimos. None si no mapea a un valor permitido."""
@@ -137,6 +143,14 @@ def _merge_extra(v: Vocab, path: str | Path) -> None:
         if norm_key(canon) not in v._marca_idx:
             raise ValueError(f"alias '{alias}' apunta a marca inexistente '{canon}'")
         v._alias_idx[norm_key(alias)] = v._marca_idx[norm_key(canon)]
+    # alias de modelo por marca: {marca: {modelo_raw: modelo_canonico}}
+    for marca, mapping in (extra.get("model_aliases") or {}).items():
+        canon_marca = v._marca_idx.get(norm_key(marca))
+        if not canon_marca:
+            raise ValueError(f"model_aliases para marca inexistente '{marca}'")
+        dst = v._model_alias.setdefault(canon_marca, {})
+        for raw, modelo in mapping.items():
+            dst[norm_key(raw)] = modelo
 
 
 if __name__ == "__main__":

@@ -63,6 +63,21 @@
       "9000",
       "MACH 590",
       "MACH 591"
+    ],
+    "FUSO": [
+      "1217"
     ]
+  },
+  "model_aliases": {
+    "FUSO": {
+      "917": "FA CARGO",
+      "CARGO 917": "FA CARGO",
+      "FA 917": "FA CARGO",
+      "FA917": "FA CARGO",
+      "1217": "1217",
+      "1217 CHC": "1217",
+      "1217 CHC LONG": "1217",
+      "1217 CHC LONG - EURO 5": "1217"
+    }
   }
 }
