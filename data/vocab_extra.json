@@ -6,7 +6,14 @@
     "HOWO SINOTRUK": "HOWO",
     "HOWO SINOTRUCK": "HOWO",
     "SINOTRUCK HOWO": "HOWO",
-    "SINOTRUCK": "SINOTRUK"
+    "SINOTRUCK": "SINOTRUK",
+    "SHANDONG BEIJUN": "BEIJUN",
+    "HONGQIAN TECH": "HONGQIAN",
+    "BEIBEN TRUCK": "BEIBEN",
+    "BEIJING FOTON": "FOTON",
+    "QINGLING ISUZU": "ISUZU",
+    "SINOTRUK HOWO": "HOWO",
+    "LOADRAW SHACMAN": "SHACMAN"
   },
   "marcas": {
     "FORLAND": [
@@ -22,8 +29,20 @@
       "FD800N"
     ],
     "HOWO": [
+      "SZD5258ZXXZZ6",
+      "ZZ1048F3815D145",
+      "ZZ1087G381CE183",
+      "ZZ1107G451CD1",
+      "ZZ1167M561GE1",
       "ZZ1168F4715E1",
-      "ZZ1087G381CE183"
+      "ZZ1257N464GE1",
+      "ZZ3257N33447E1",
+      "ZZ3257N364GE1",
+      "ZZ3257N4647E1",
+      "ZZ3257V384JF1",
+      "ZZ3315V2866F1",
+      "ZZ3317V306GF1",
+      "ZZ4257V344KF1"
     ],
     "SINOTRUK": [
       "SZD5258ZXXZZ6",
@@ -66,6 +85,40 @@
     ],
     "FUSO": [
       "1217"
+    ],
+    "SHACMAN": [
+      "SX1185K2K22B5010",
+      "SX1255K2K22B4390",
+      "SX32505B4041A"
+    ],
+    "ISUZU": [
+      "CLW5070GNY5",
+      "QL5180XXYESFRY",
+      "SCS1100A8K"
+    ],
+    "LOADRAW": [
+      "BJ1166XXY"
+    ],
+    "TEREX": [
+      "TA6"
+    ],
+    "PEREYRA": [
+      "FCD60"
+    ],
+    "HINO": [
+      "G5G"
+    ],
+    "BEIJUN": [
+      "LIQ-12"
+    ],
+    "HONGQIAN": [
+      "XYUK-5"
+    ],
+    "FOTON": [
+      "BJ1181Y6AKL-01"
+    ],
+    "BEIBEN": [
+      "ND5340TTZZ02"
     ]
   },
   "model_aliases": {
@@ -90,6 +143,12 @@
       "17.230 DC MAN E5": "ROBUST 17.230",
       "17.280 DC MAN E5": "ROBUST 17.280",
       "17.280 LR MAN E5": "ROBUST 17.280"
+    },
+    "HINO": {
+      "(0T8)-GH LARGO-SEMI FULL": "GH"
+    },
+    "MERCEDES BENZ": {
+      "915 E": "ACCELO"
     }
   }
 }
