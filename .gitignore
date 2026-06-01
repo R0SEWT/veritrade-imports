@@ -11,3 +11,10 @@ __pycache__/
 .env
 CLAUDE.md
 .claude/
+
+# Web service runtime
+jobs/
+backend.db
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/

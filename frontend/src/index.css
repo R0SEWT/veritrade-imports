@@ -1,0 +1,11 @@
+@import "tailwindcss";
+
+:root {
+  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  margin: 0;
+  background: #f9fafb;
+}
